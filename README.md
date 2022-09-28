@@ -1,2 +1,2 @@
 # apps
-A collection of useful apps
+A collection of useful applications and tools
