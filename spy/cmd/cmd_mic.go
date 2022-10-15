@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
+
+	"github.com/cinus-e/spy/internal/literr"
 	"github.com/cinus-e/spy/internal/microphone"
 	"github.com/cinus-e/spy/internal/util"
 	"github.com/urfave/cli/v2"
-	"os"
-	"os/signal"
 )
 
 var Mic = &cli.Command{
@@ -22,10 +24,7 @@ func MicrophoneAction(*cli.Context) error {
 	}
 	fmt.Printf("Recording.\nPress Ctrl-C to stop.\n")
 	go func() {
-		if err := recorder.RecordWav(); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+		literr.CheckFatal(recorder.RecordWav())
 	}()
 	// Stop the stream when the user tries to quit the program.
 	sig := make(chan os.Signal)

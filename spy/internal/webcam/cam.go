@@ -45,3 +45,7 @@ func (d *Device) Capture() error {
 		time.Sleep(500 * time.Millisecond)
 	}
 }
+
+func (d *Device) Close() error {
+	return d.capture.Close()
+}

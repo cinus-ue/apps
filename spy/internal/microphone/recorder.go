@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/cinus-e/spy/internal/literr"
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/wav"
 	"github.com/gen2brain/malgo"
@@ -51,8 +52,7 @@ func (m *MicRecorder) RecordWav() error {
 }
 
 func (m *MicRecorder) Close() {
+	literr.CheckError(m.stream.Close())
 	_ = m.context.Uninit()
 	m.context.Free()
-	m.stream.Stop()
-	_ = m.stream.Close()
 }

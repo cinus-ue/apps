@@ -11,13 +11,13 @@ import (
 
 var Key = &cli.Command{
 	Name:  "key",
-	Usage: "Keyboard and clipboard logger",
+	Usage: "Keystroke and clipboard logging",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{
-			Name:     "keyboard",
+			Name:     "Keystroke",
 			Aliases:  []string{"k"},
 			Required: true,
-			Usage:    "Enable keyboard logging",
+			Usage:    "Enable Keystroke logging",
 		},
 		&cli.BoolFlag{
 			Name:     "clipboard",

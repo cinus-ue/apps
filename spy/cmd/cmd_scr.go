@@ -37,7 +37,8 @@ var Scr = &cli.Command{
 }
 
 func ScreenAction(c *cli.Context) error {
-	return screen.StartCapture(screen.Params{
+	cap := screen.Capture{}
+	return cap.StartCapture(screen.Params{
 		Address: c.String("url"),
 		Display: c.Int("display"),
 		Quality: c.Int("quality"),

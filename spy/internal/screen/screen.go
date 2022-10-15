@@ -14,6 +14,7 @@ type Screen struct {
 	displayIndex, quality int
 	buf                   *bytes.Buffer
 	data                  chan []byte
+	running               bool
 }
 
 func NewScreenCapturer(displayIndex, quality int, data chan []byte) *Screen {
@@ -31,7 +32,8 @@ func NewScreenCapturer(displayIndex, quality int, data chan []byte) *Screen {
 }
 
 func (s *Screen) Capture() error {
-	for {
+	s.running = true
+	for s.running {
 		img, err := screenshot.CaptureRect(s.bounds)
 		if err != nil {
 			return err
@@ -50,4 +52,8 @@ func (s *Screen) sendImg(i image.Image) {
 	}
 	s.data <- s.buf.Bytes()
 	time.Sleep(500 * time.Millisecond)
+}
+
+func (s *Screen) Close() {
+	s.running = false
 }

@@ -37,7 +37,8 @@ var Cam = &cli.Command{
 }
 
 func WebcamAction(c *cli.Context) error {
-	return webcam.StartCapture(webcam.Params{
+	cap := &webcam.Capture{}
+	return cap.StartCapture(webcam.Params{
 		Address:  c.String("url"),
 		DeviceID: c.Int("deviceID"),
 		Quality:  c.Int("quality"),
