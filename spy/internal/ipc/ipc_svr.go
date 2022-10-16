@@ -22,8 +22,7 @@ func StartServer() error {
 
 	for {
 		m, err := sc.Read()
-		if err != nil {
-			literr.CheckError(err)
+		if literr.CheckError(err) {
 			continue
 		}
 		if m.MsgType > 0 {

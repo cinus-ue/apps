@@ -24,20 +24,20 @@ type timeEntry struct {
 }
 
 type Tracker struct {
-	activity                      map[string]*timeEntry
-	process                       map[string]*timeEntry
-	actistate, procstate          bool
-	actisave, procsave            time.Time
-	refreshInterval, saveInterval int
+	activity                    map[string]*timeEntry
+	process                     map[string]*timeEntry
+	actistate, procstate        bool
+	actisave, procsave          time.Time
+	watchInterval, saveInterval int
 }
 
 func NewTracker(watchInterval, saveInterval int) *Tracker {
 	return &Tracker{activity: make(map[string]*timeEntry),
-		process:         make(map[string]*timeEntry),
-		actisave:        time.Now(),
-		procsave:        time.Now(),
-		refreshInterval: watchInterval,
-		saveInterval:    saveInterval,
+		process:       make(map[string]*timeEntry),
+		actisave:      time.Now(),
+		procsave:      time.Now(),
+		watchInterval: watchInterval,
+		saveInterval:  saveInterval,
 	}
 }
 
@@ -56,7 +56,7 @@ func (t *Tracker) TrackingActivity() {
 		if time.Now().Sub(t.actisave).Minutes() > float64(t.saveInterval) {
 			t.saveActivity()
 		}
-		time.Sleep(time.Duration(t.refreshInterval) * time.Second)
+		time.Sleep(time.Duration(t.watchInterval) * time.Second)
 	}
 }
 
@@ -77,7 +77,7 @@ func (t *Tracker) TrackingProcess() {
 				t.saveProcess()
 			}
 		}
-		time.Sleep(time.Duration(t.refreshInterval) * time.Second)
+		time.Sleep(time.Duration(t.watchInterval) * time.Second)
 	}
 }
 

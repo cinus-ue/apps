@@ -17,10 +17,10 @@ var App = &cli.Command{
 			Usage: "Start tracking your usage activity",
 			Flags: []cli.Flag{
 				&cli.IntFlag{
-					Name:    "refresh",
-					Aliases: []string{"r"},
+					Name:    "watch",
+					Aliases: []string{"w"},
 					Value:   5,
-					Usage:   "Refresh interval(seconds)",
+					Usage:   "Watch interval(seconds)",
 				},
 				&cli.IntFlag{
 					Name:    "save",
@@ -41,7 +41,7 @@ var App = &cli.Command{
 }
 
 func trackAction(c *cli.Context) error {
-	tkr := tracker.NewTracker(c.Int("refresh"), c.Int("save"))
+	tkr := tracker.NewTracker(c.Int("watch"), c.Int("save"))
 	go tkr.TrackingActivity()
 	go tkr.TrackingProcess()
 	sig := make(chan os.Signal)
