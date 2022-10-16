@@ -23,9 +23,7 @@ func MicrophoneAction(*cli.Context) error {
 		return err
 	}
 	fmt.Printf("Recording.\nPress Ctrl-C to stop.\n")
-	go func() {
-		literr.CheckFatal(recorder.RecordWav())
-	}()
+	go literr.CheckFatal(recorder.RecordWav())
 	// Stop the stream when the user tries to quit the program.
 	sig := make(chan os.Signal)
 	signal.Notify(sig, os.Interrupt, os.Kill)

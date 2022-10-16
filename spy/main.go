@@ -12,7 +12,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "spy"
 	app.Usage = "Spy software to monitor computer remotely"
-	app.Version = "0.0.2.20221015"
+	app.Version = "0.0.3.20221016"
 	app.Commands = []*cli.Command{
 		cmd.App,
 		cmd.Cam,

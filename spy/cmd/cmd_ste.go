@@ -7,7 +7,7 @@ import (
 
 var Ste = &cli.Command{
 	Name:   "stealth",
-	Usage:  "Runs in the background using IPC communication",
+	Usage:  "Run in the background using IPC communication",
 	Action: StealthAction,
 }
 

