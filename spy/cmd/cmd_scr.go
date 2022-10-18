@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/cinus-e/spy/internal/screen"
+	"github.com/cinus-e/spy/agent/screen"
 	"github.com/urfave/cli/v2"
 )
 

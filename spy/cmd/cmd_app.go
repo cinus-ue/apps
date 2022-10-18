@@ -4,7 +4,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/cinus-e/spy/internal/tracker"
+	"github.com/cinus-e/spy/agent/tracker"
 	"github.com/urfave/cli/v2"
 )
 

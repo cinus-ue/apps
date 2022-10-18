@@ -2,14 +2,14 @@ package screen
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"time"
 
-	"github.com/cinus-e/spy/internal/literr"
+	"github.com/cinus-e/spy/literr"
 )
 
 type Params struct {
@@ -58,7 +58,7 @@ func (c *Capture) write(data []byte, address string) error {
 		return err
 	}
 	if c.verbose {
-		fmt.Printf("Frame size : %d bytes, write bytes : %d", len(data), written)
+		log.Printf("Frame size : %d bytes, write bytes : %d", len(data), written)
 	}
 	writer.Close()
 
@@ -72,7 +72,7 @@ func (c *Capture) write(data []byte, address string) error {
 		return err
 	}
 	if c.verbose {
-		fmt.Printf(" status:%s response:%s\n", resp.Status, string(respBody))
+		log.Printf(" status:%s response:%s\n", resp.Status, string(respBody))
 	}
 	return nil
 }

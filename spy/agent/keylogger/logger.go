@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/atotto/clipboard"
-	"github.com/cinus-e/spy/internal/literr"
-	"github.com/cinus-e/spy/internal/system"
-	"github.com/cinus-e/spy/internal/util"
+	"github.com/cinus-e/spy/literr"
+	"github.com/cinus-e/spy/system"
+	"github.com/cinus-e/spy/util"
 )
 
 type Keylogger struct {

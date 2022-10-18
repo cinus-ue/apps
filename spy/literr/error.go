@@ -2,7 +2,7 @@ package literr
 
 import (
 	"errors"
-	"fmt"
+	"log"
 	"os"
 )
 
@@ -10,7 +10,7 @@ var ArgsError = errors.New("required arguments not provided")
 
 func CheckError(errs ...error) bool {
 	if !Discard {
-		PrintError(errs...)
+		LogError(errs...)
 	}
 	return HasError(errs...)
 }
@@ -20,14 +20,14 @@ func CheckFatal(errs ...error) {
 		os.Exit(1)
 	}
 }
-func PrintError(errs ...error) {
+func LogError(errs ...error) {
 	for _, err := range errs {
 		if err == nil {
 			continue
 		}
-		fmt.Fprintln(os.Stderr, " Error: ", err.Error())
+		log.Println(" Error: ", err.Error())
 		if Debug {
-			PrintStack()
+			LogStack()
 		}
 	}
 }

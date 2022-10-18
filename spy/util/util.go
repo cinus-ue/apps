@@ -7,7 +7,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/cinus-e/spy/internal/literr"
+	"github.com/cinus-e/spy/literr"
 )
 
 const (
@@ -99,7 +99,8 @@ func ParseRFC3339(s string) time.Time {
 }
 
 func StrToInt(s string) int {
-	i, _ := strconv.Atoi(s)
+	i, err := strconv.Atoi(s)
+	literr.CheckError(err)
 	return i
 }
 

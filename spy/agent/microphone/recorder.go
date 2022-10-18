@@ -1,11 +1,11 @@
 package microphone
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
-	"github.com/cinus-e/spy/internal/literr"
+	"github.com/cinus-e/spy/literr"
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/wav"
 	"github.com/gen2brain/malgo"
@@ -20,7 +20,7 @@ type MicRecorder struct {
 
 func NewMicRecorder(name string) (*MicRecorder, error) {
 	ctx, err := malgo.InitContext(nil, malgo.ContextConfig{}, func(message string) {
-		fmt.Printf("LOG <%v>\n", message)
+		log.Printf("LOG <%v>\n", message)
 	})
 	if err != nil {
 		return nil, err
