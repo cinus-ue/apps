@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/cinus-e/spy/literr"
+	"github.com/cinus-e/spy/util"
 )
 
 type Params struct {
@@ -21,11 +22,13 @@ type Params struct {
 type Capture struct {
 	verbose, running bool
 	device           *Device
+	client           *http.Client
 }
 
 func (c *Capture) StartCapture(p Params) (err error) {
 	c.verbose = p.Verbose
 	c.running = true
+	c.client = util.HttpClient()
 	data := make(chan []byte, 200000)
 	device, err := NewVideoCapturer(p.DeviceID, p.Quality, data)
 	if err != nil {
@@ -65,7 +68,7 @@ func (c *Capture) write(data []byte, address string) error {
 	}
 	writer.Close()
 
-	resp, err := http.Post(address, writer.FormDataContentType(), buffer)
+	resp, err := c.client.Post(address, writer.FormDataContentType(), buffer)
 	if err != nil {
 		return err
 	}

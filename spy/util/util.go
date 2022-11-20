@@ -1,7 +1,9 @@
 package util
 
 import (
+	"crypto/tls"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -114,4 +116,11 @@ func Unique(s []string) []string {
 		}
 	}
 	return ret
+}
+
+func HttpClient() *http.Client {
+	tr := &http.Transport{}
+	tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	hc := &http.Client{Transport: tr}
+	return hc
 }
