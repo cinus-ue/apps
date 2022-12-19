@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/cinus-e/spy/literr"
+	"github.com/cinus-ue/spy/literr"
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/wav"
 	"github.com/gen2brain/malgo"

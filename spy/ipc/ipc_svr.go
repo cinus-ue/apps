@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/cinus-e/spy/literr"
+	"github.com/cinus-ue/spy/literr"
 	ipc "github.com/james-barrow/golang-ipc"
 )
 

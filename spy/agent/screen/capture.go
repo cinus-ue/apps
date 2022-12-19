@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cinus-e/spy/literr"
-	"github.com/cinus-e/spy/util"
+	"github.com/cinus-ue/spy/literr"
+	"github.com/cinus-ue/spy/util"
 )
 
 type Params struct {

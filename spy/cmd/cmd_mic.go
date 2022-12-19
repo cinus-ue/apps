@@ -5,9 +5,9 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/cinus-e/spy/agent/microphone"
-	"github.com/cinus-e/spy/literr"
-	"github.com/cinus-e/spy/util"
+	"github.com/cinus-ue/spy/agent/microphone"
+	"github.com/cinus-ue/spy/literr"
+	"github.com/cinus-ue/spy/util"
 	"github.com/urfave/cli/v2"
 )
 

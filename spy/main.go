@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/cinus-e/spy/cmd"
-	"github.com/cinus-e/spy/literr"
+	"github.com/cinus-ue/spy/cmd"
+	"github.com/cinus-ue/spy/literr"
 	"github.com/urfave/cli/v2"
 )
 

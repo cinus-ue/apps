@@ -1,7 +1,7 @@
 package tracker
 
 import (
-	"github.com/cinus-e/spy/system"
+	"github.com/cinus-ue/spy/system"
 )
 
 func TrackingWindow() (appName, text string) {

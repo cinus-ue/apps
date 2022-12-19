@@ -4,7 +4,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/cinus-e/spy/agent/keylogger"
+	"github.com/cinus-ue/spy/agent/keylogger"
 	"github.com/urfave/cli/v2"
 )
 

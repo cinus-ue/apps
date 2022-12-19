@@ -1,4 +1,4 @@
-module github.com/cinus-e/spy
+module github.com/cinus-ue/spy
 
 go 1.18
 

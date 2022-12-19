@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/cinus-e/spy/agent/webcam"
+	"github.com/cinus-ue/spy/agent/webcam"
 	"github.com/urfave/cli/v2"
 )
 

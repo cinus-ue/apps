@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/cinus-e/spy/ipc"
+	"github.com/cinus-ue/spy/ipc"
 	"github.com/urfave/cli/v2"
 )
 

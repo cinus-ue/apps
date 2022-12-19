@@ -9,8 +9,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/cinus-e/spy/literr"
-	"github.com/cinus-e/spy/util"
+	"github.com/cinus-ue/spy/literr"
+	"github.com/cinus-ue/spy/util"
 )
 
 func ShowStatistics(files []string) {
